@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.0.1
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
-// @run-at       document-start
+// @run-at       document-body
+// @grant        none
 // ==/UserScript==
 
 
