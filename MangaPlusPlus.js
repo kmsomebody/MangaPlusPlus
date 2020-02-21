@@ -59,6 +59,8 @@ div[class*="Navigation-module_header"]
     height: calc(100% - 10px) !important;
     background-color: var(--color-dark-gray) !important;
     box-sizing: content-box !important;
+    box-shadow: unset !important;
+    -webkit-box-shadow: unset !important;
 }
 
 
