@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.4
+// @version      1.1.5
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -298,6 +298,10 @@ div[class*="Viewer-module_viewerContainer"]
 {
     height: calc(var(--vh, 1vh) * 100) !important;
 }
+.mpp-alt-nav img.zao-image
+{
+    cursor: pointer !important;
+}
 `);
 
 
@@ -482,7 +486,7 @@ div[class*="Viewer-module_viewerContainer"]
     /* Add or remove class from root, depending on condition */
     function mppSetConditionalClass(element, condition, className)
     {
-        return condition ? mppRemoveClass(element, className) : mppAddClass(element, className);
+        return condition ? mppAddClass(element, className) : mppRemoveClass(element, className);
     }
 
     /* Add or remove class from root, depending on condition */
@@ -599,10 +603,13 @@ div[class*="Viewer-module_viewerContainer"]
     var mppSettings = (function()
     {
         var settings = new MppAdvancedOptionCollection();
-        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 1));
+        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
+        {
+            mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
+        }));
         settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
         {
-            if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "On", "mpp-no-progress-bar"))
+            if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "Off", "mpp-no-progress-bar"))
             {
                 window.dispatchEvent(new Event('resize'));
             }
@@ -635,8 +642,8 @@ div[class*="Viewer-module_viewerContainer"]
                 }
 
                 mppSettings.update();
-                mppSetConditionalClass(document.getElementById("mpp-nav-left"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
-                mppSetConditionalClass(document.getElementById("mpp-nav-right"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+                mppSetConditionalClass(document.getElementById("mpp-nav-left"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+                mppSetConditionalClass(document.getElementById("mpp-nav-right"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
             }, 500);
         }
     }, true);
