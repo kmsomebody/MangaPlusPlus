@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.3
+// @version      1.1.4
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -142,7 +142,7 @@ p[class*="Navigation-module_chapterTitle"]::after
  */
 div[class*="Navigation-module_settingsContainer"]
 {
-    flex-grow: 0 !important;
+    flex-grow: 1 !important;
     border-top: 1px solid var(--color-gray) !important;
     padding: 1.5em 2em !important;
 }
@@ -549,7 +549,6 @@ div[class*="Viewer-module_viewerContainer"]
 
                 if (e.target.className == "zao-image")
                 {
-                    console.log("image clicked");
                     keyEvent("ArrowLeft");
                 }
             }
@@ -558,13 +557,23 @@ div[class*="Viewer-module_viewerContainer"]
 
     function mppInitApp()
     {
+        if (mppLoadedUrl == window.location.href )
+        {
+            return;
+        }
+
+        mppLoadedUrl = window.location.href;
+        if (!window.location.href.includes("mangaplus.shueisha.co.jp/viewer/"))
+        {
+            return;
+        }
+
         // Look for header until it's found and then initialize it
         var interval = setInterval(function()
         {
             var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header");
-            if (header && mppLoadedUrl != window.location.href && window.location.href.includes("mangaplus.shueisha.co.jp/viewer/"))
+            if (header)
             {
-                mppLoadedUrl = window.location.href;
                 clearInterval(interval);
                 mppInitHtml(header);
             }
@@ -605,7 +614,9 @@ div[class*="Viewer-module_viewerContainer"]
 
 
     /* HTML */
-    document.addEventListener("DOMContentLoaded", mppInitApp);
+    window.addEventListener("load", mppInitApp);
+
+    window.addEventListener("popstate", mppInitApp);
 
     // Allow context menu
     window.addEventListener("contextmenu", e => e.stopPropagation(), true);
