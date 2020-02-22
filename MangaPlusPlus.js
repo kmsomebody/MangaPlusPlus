@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         MangaPlusPlus Dev
+// @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
 // @version      1.1.0
 // @description  Overhaul for the MangaPlus reader
