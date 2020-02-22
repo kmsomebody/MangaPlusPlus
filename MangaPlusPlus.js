@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.5
+// @version      1.1.6
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -627,6 +627,24 @@ div[class*="Viewer-module_viewerContainer"]
 
     // Allow context menu
     window.addEventListener("contextmenu", e => e.stopPropagation(), true);
+
+    // Allow middle mouse scrolling
+    document.addEventListener("mousedown", function(e)
+    {
+        if (e && (e.which == 2 || e.button == 4 ))
+        {
+            e.stopPropagation();
+        }
+    }, true);
+
+    // Allow page refresh
+    document.addEventListener("keydown", function(e)
+    {
+        if (e.key == "BrowserRefresh" || e.key == "F5")
+        {
+            e.stopPropagation();
+        }
+    }, true);
 
     // Refresh UI
     document.addEventListener("click", function(e)
