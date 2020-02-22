@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.1.2
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -479,10 +479,15 @@ div[class*="Viewer-module_viewerContainer"]
     }
 
     /* Add or remove class from root, depending on condition */
+    function mppSetConditionalClass(element, condition, className)
+    {
+        return condition ? mppRemoveClass(element, className) : mppAddClass(element, className);
+    }
+
+    /* Add or remove class from root, depending on condition */
     function mppSetConditionalRootClass(condition, className)
     {
-        var root = document.getElementById("app");
-        return condition ? mppRemoveClass(root, className) : mppAddClass(root, className);
+        return mppSetConditionalClass(document.getElementById("app"), condition, className);
     }
 
     /* Recursively search for element with class that contains a certain string */
@@ -587,7 +592,12 @@ div[class*="Viewer-module_viewerContainer"]
         // Refresh UI
         document.addEventListener("click", function(e)
         {
-            setTimeout(() => { mppSettings.update() }, 500);
+            setTimeout(() =>
+            {
+                mppSettings.update();
+                mppSetConditionalClass(document.getElementById("mpp-nav-left"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+                mppSetConditionalClass(document.getElementById("mpp-nav-right"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
+            }, 500);
         }, true);
 
         // Go forward on image click
