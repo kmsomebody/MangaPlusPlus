@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.2
+// @version      1.1.3
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
 // @run-at       document-body
 // @grant        none
 // ==/UserScript==
+
 
 
 /* STYLE */
@@ -538,7 +539,39 @@ div[class*="Viewer-module_viewerContainer"]
                 keyEvent("ArrowRight");
             }
         });
+
+        // Go forward on image click
+        document.getElementsByClassName("zao")[0].addEventListener("click", function(e)
+        {
+            if (mppSettings[MPP_ALT_NAV].getValue() == "On")
+            {
+                e.stopPropagation();
+
+                if (e.target.className == "zao-image")
+                {
+                    console.log("image clicked");
+                    keyEvent("ArrowLeft");
+                }
+            }
+        }, true);
     }
+
+    function mppInitApp()
+    {
+        // Look for header until it's found and then initialize it
+        var interval = setInterval(function()
+        {
+            var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header");
+            if (header && mppLoadedUrl != window.location.href && window.location.href.includes("mangaplus.shueisha.co.jp/viewer/"))
+            {
+                mppLoadedUrl = window.location.href;
+                clearInterval(interval);
+                mppInitHtml(header);
+            }
+        }, 50);
+    }
+
+
 
 
 
@@ -549,6 +582,8 @@ div[class*="Viewer-module_viewerContainer"]
     const MPP_SHOW_PROG = "Show Progress Bar";
     const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal"); // Reading mode condition
 
+
+    var mppLoadedUrl = null;
 
 
     /* Settings */
@@ -570,57 +605,29 @@ div[class*="Viewer-module_viewerContainer"]
 
 
     /* HTML */
-    document.addEventListener("DOMContentLoaded", function()
+    document.addEventListener("DOMContentLoaded", mppInitApp);
+
+    // Allow context menu
+    window.addEventListener("contextmenu", e => e.stopPropagation(), true);
+
+    // Refresh UI
+    document.addEventListener("click", function(e)
     {
-        // Look for header until it's found and then initialize it
-        var interval = setInterval(function()
-        {
-            var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header");
-            if (header)
-            {
-                clearInterval(interval);
-                mppInitHtml(header);
-            }
-        }, 50);
-    });
-
-
-
-    /* Events */
-    window.addEventListener("load", function()
-    {
-        // Refresh UI
-        document.addEventListener("click", function(e)
+        if (mppLoadedUrl)
         {
             setTimeout(() =>
             {
+                if (mppLoadedUrl != window.location.href)
+                {
+                    mppInitApp();
+                    return;
+                }
+
                 mppSettings.update();
                 mppSetConditionalClass(document.getElementById("mpp-nav-left"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
                 mppSetConditionalClass(document.getElementById("mpp-nav-right"), READ_HORIZONTAL.isEnabled(), "mpp-disabled");
             }, 500);
-        }, true);
-
-        // Go forward on image click
-        document.getElementsByClassName("zao")[0].addEventListener("click", function(e)
-        {
-            if (mppSettings[MPP_ALT_NAV].getValue() == "On")
-            {
-                e.stopPropagation();
-
-                if (e.target.className == "zao-image")
-                {
-                    console.log("image clicked");
-                    keyEvent("ArrowLeft");
-                }
-            }
-        }, true);
-
-        // Allow context menu
-        window.addEventListener("contextmenu", function(e)
-                                {
-            e.stopPropagation();
-        }, true);
-
-    }, false);
+        }
+    }, true);
 
 })();
