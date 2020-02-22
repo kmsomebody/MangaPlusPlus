@@ -1,6 +1,10 @@
 # MangaPlusPlus
 This is a simple user script that improves the MangaPlus reader.
 
+## Compatibility
+Tested on Firefox 73 with Tampermonkey.  
+It should work with other browsers and script managers as well, but hasn't been tested.
+
 ## Installation
 1. Install [Tampermonkey](https://www.tampermonkey.net/)
 2. Open Tampermonkey and go to "Utilities". Install the script from this URL: 
@@ -16,3 +20,11 @@ These options currently only work in horizontal reading mode.
 #### Show Progress Bar
 * **On**: Displays the progress bar at the bottom of the page.
 * **Off**: Hides the progress bar.
+
+## Planned Features
+* Show page number in sidebar
+* Integrate main settings into sidebar
+* More navigation modes
+* Collapsing sidebar
+
+If you have any suggestions, feel free to [open an issue](https://github.com/DarthSomebody/MangaPlusPlus/issues/new).
