@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.6
+// @version      1.1.7
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -35,6 +35,10 @@
 div[class*="Modal-module_modal"]
 {
     z-index: 5 !important;
+}
+div[class*="Modal-module_settings"]
+{
+    background: var(--color-dark-gray) !important;
 }
 
 
