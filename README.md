@@ -26,5 +26,6 @@ These options currently only work in horizontal reading mode.
 * Integrate main settings into sidebar
 * More navigation modes
 * Collapsing sidebar
+* Fullscreen button
 
 If you have any suggestions, feel free to [open an issue](https://github.com/DarthSomebody/MangaPlusPlus/issues/new).
