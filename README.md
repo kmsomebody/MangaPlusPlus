@@ -1,6 +1,8 @@
 # MangaPlusPlus
 This is a simple user script that improves the MangaPlus reader.
 
+![MangaPlusPlus Preview](/Images/preview.png)
+
 ## Compatibility
 Tested on Firefox 73 with Tampermonkey.  
 It should work with other browsers and script managers as well, but hasn't been tested.
