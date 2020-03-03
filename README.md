@@ -1,7 +1,13 @@
 # MangaPlusPlus
-This is a simple user script that improves the MangaPlus reader.
+This is a simple user script that improves the [MangaPlus](https://mangaplus.shueisha.co.jp) reader to make it an overall better experience.
+
+## Features
+- Removes the red, obtrusive menu bars and shadows at the top and bottom of the page
+- Adds a sidebar (with options and navigation buttons in horizontal mode only)
+- Enables basic browser functions like right-click and page refresh, that are blocked by MangaPlus
 
 ![MangaPlusPlus Preview](/Images/preview.png)
+
 
 ## Compatibility
 Tested on Firefox 73 with Tampermonkey.  
