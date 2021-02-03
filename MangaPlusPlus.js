@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.1.7
+// @version      1.2.0
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -42,14 +42,6 @@ div[class*="Modal-module_settings"]
 }
 
 
-/*
- * CHAPTER LIST
- */
-div[class*="SideMenu-module_sideMenu"]
-{
-    top: 0 !important;
-}
-
 
 /*
  * HEADER
@@ -66,7 +58,7 @@ div[class*="Navigation-module_header"]
     top: 0 !important;
     width: calc(18em + 6px) !important;
     height: calc(100% - 0.6em) !important;
-    background-color: var(--color-dark-gray) !important;
+    background: var(--color-dark-gray) !important;
     box-sizing: content-box !important;
     box-shadow: unset !important;
     -webkit-box-shadow: unset !important;
@@ -104,12 +96,14 @@ div[class*="Navigation-module_detailContainer"]
 {
     display: flex !important;
     flex-direction: row !important;
-    align-items: baseline !important;
-    justify-content: space-between !important;
+    align-items: start !important;
+    justify-content: flex-start !important;
     flex-grow: 0 !important;
     box-sizing: border-box;
     border-top: 1px solid var(--color-gray) !important;
     padding: 1.5em 2em !important;
+    flex-wrap: wrap !important;
+    flex-basis: unset !important;
 }
 div[class*="Navigation-module_detailContainer"] h1
 {
@@ -121,6 +115,10 @@ div[class*="Navigation-module_detailContainer"] h1
 div[class*="Navigation-module_detailContainer"] a
 {
     display: block !important;
+}
+div[class*="Navigation-module_chapterTitleWrapper"]
+{
+    margin-top: 8px;
 }
 p[class*="Navigation-module_chapterTitle"]
 {
@@ -149,6 +147,11 @@ div[class*="Navigation-module_settingsContainer"]
     flex-grow: 1 !important;
     border-top: 1px solid var(--color-gray) !important;
     padding: 1.5em 2em !important;
+    flex-basis: unset !important;
+}
+div[class*="Navigation-module_settingsContainer"]:hover
+{
+    background-color: var(--color-gray);
 }
 div[class*="Navigation-module_kebabMenu"]
 {
@@ -183,6 +186,13 @@ div.mpp-settings h2
     font-size: 1em;
     margin-bottom: 1em;
     font-weight: normal;
+    animation: unset !important;
+    -webkit-animation: unset !important;
+    text-shadow: unset !important;
+    text-transform: unset !important;
+    margin-top: 0 !important;
+    font-family: Roboto,Sans-Serif;
+    color: #fff;
 }
 
 div.mpp-settings p
@@ -260,6 +270,12 @@ div[class*="Viewer-module_footer"]
     z-index: 4 !important;
     position: relative !important;
     background-color: var(--color-gray) !important;
+    padding: 0;
+    position: relative;
+}
+div[class*="Viewer-module_footer"] div[class*="Viewer-module_container"]
+{
+    margin-top: 0;
 }
 div[class*="Viewer-module_slider"]
 {
@@ -289,6 +305,23 @@ div[class*="Viewer-module_slider"]
     background-color: var(--color-gray) !important;
 }
 
+/*
+ * COMMENTS BUTTON
+ */
+div[class*="Viewer-module_container"] img[class*="Viewer-module_commentIcon"]
+{
+    top: unset !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    opacity: 0.4;
+}
+div[class*="Viewer-module_container"] img[class*="Viewer-module_commentIcon"]:hover
+{
+    top: unset !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    opacity: 1;
+}
 
 /*
  * IMAGE CONTAINER
