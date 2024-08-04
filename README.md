@@ -38,7 +38,6 @@ These options currently only work in horizontal reading mode.
 ## Planned Features
 
 - Show page number in sidebar
-- Collapsing sidebar
 - Fullscreen button
 
 If you have any suggestions, feel free to [open an issue](https://github.com/kmsomebody/MangaPlusPlus/issues/new).
