@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MangaPlusPlus
 // @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @version      1.3.0
 // @description  Overhaul for the MangaPlus reader
 // @author       Somebody
 // @match        https://mangaplus.shueisha.co.jp/*
@@ -15,7 +15,6 @@
 (function (css)
 {
     var style = document.createElement("style");
-    style.type = "text/css";
     style.innerHTML = css;
     document.head.appendChild(style);
 })(`
@@ -40,6 +39,10 @@ div[class*="Modal-module_settings"]
 {
     background: var(--color-dark-gray) !important;
 }
+div[class*="Modal-module_modal"]
+{
+    background-color: #000d !important;
+}
 
 
 
@@ -63,6 +66,10 @@ div[class*="Navigation-module_header"]
     box-shadow: unset !important;
     -webkit-box-shadow: unset !important;
 }
+.mpp-menu-collapsed div[class*="Navigation-module_header"]
+{
+    display: none !important;
+}
 .mpp-no-progress-bar div[class*="Navigation-module_header"]
 {
     height: calc(var(--vh, 1vh) * 100) !important;
@@ -70,14 +77,57 @@ div[class*="Navigation-module_header"]
 
 
 /*
- * HEADER: LOGO
+ * MENU BUTTON
  */
+.mpp-expand 
+{
+    position: absolute;
+    display: none;
+    right: 8px;
+    top: 8px;
+    z-index: 4;
+    background: var(--color-dark-gray);
+    border: 1px solid var(--color-gray);
+    padding: 0.5em 0.75em;
+    border-radius: 8px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+.mpp-expand:hover 
+{
+    opacity: 1;
+}
+.mpp-menu-collapsed .mpp-expand
+{
+    display: block;
+}
+
+
+/*
+ * HEADER: LOGO AND COLLAPSE
+ */
+.mpp-collapse 
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1em;
+    cursor: pointer;
+    border-right: 1px solid var(--color-gray);
+}
 div[class*="Navigation-module_imageContainer"]
 {
+    display: flex !important;
+    flex-direction: row !important;
     margin: 0 !important;
     flex-grow: 0 !important;
 }
-div[class*="Navigation-module_imageContainer"]:hover
+div[class*="Navigation-module_imageContainer"] a
+{
+    flex-grow: 1 !important;
+}
+div[class*="Navigation-module_imageContainer"] a:hover,
+.mpp-collapse:hover
 {
     background-color: var(--color-gray) !important;
 }
@@ -94,14 +144,14 @@ img[class*="Navigation-module_logo"]
  */
 div[class*="Navigation-module_detailContainer"]
 {
-    display: flex !important;
+    display: block !important;
     flex-direction: row !important;
     align-items: start !important;
     justify-content: flex-start !important;
     flex-grow: 0 !important;
     box-sizing: border-box;
     border-top: 1px solid var(--color-gray) !important;
-    padding: 1.5em 2em !important;
+    padding: 1em !important;
     flex-wrap: wrap !important;
     flex-basis: unset !important;
 }
@@ -118,10 +168,15 @@ div[class*="Navigation-module_detailContainer"] a
 }
 div[class*="Navigation-module_chapterTitleWrapper"]
 {
+    width: 100%;
+    padding-right: unset !important;
+    display: block;
     margin-top: 8px;
 }
 p[class*="Navigation-module_chapterTitle"]
 {
+    width: 100%;
+    display: block !important;
     font-size: 1.1em !important;
 }
 div[class*="Navigation-module_chapterTitleWrapper"]:hover,
@@ -131,14 +186,16 @@ div[class*="Navigation-module_detailContainer"] a:hover
 }
 p[class*="Navigation-module_chapterTitle"]::after
 {
-    display: inline-block !important;
-    position: relative !important;
-    right: unset !important;
-    bottom: 4px !important;
-    margin-left: 0.5em;
+    display: none !important;
 }
-
-
+div[class*="SideMenu-module_sideMenu_"] {
+    background-color: #000d;
+    z-index: 4;
+}
+div[class*="SideMenu-module_modal_"] {
+    background: var(--color-dark-gray) !important;
+}
+    
 /*
  * HEADER: SETTINGS BUTTON
  */
@@ -146,7 +203,7 @@ div[class*="Navigation-module_settingsContainer"]
 {
     flex-grow: 1 !important;
     border-top: 1px solid var(--color-gray) !important;
-    padding: 1.5em 2em !important;
+    padding: 1em !important;
     flex-basis: unset !important;
 }
 div[class*="Navigation-module_settingsContainer"]:hover
@@ -172,12 +229,30 @@ div[class*="Navigation-module_circle"]
 }
 
 /*
+ * COMMENTS
+ */
+div.mpp-comments
+{
+    border-top: 1px solid var(--color-gray);
+}
+div.mpp-comments a
+{
+    display: block;
+    padding: 1em;
+    font-weight: normal;
+}
+div.mpp-comments a:hover
+{
+    background-color: var(--color-gray);
+}
+
+/*
  * CUSTOM SETTINGS
  */
 div.mpp-settings
 {
     border-top: 1px solid var(--color-gray);
-    padding: 1.5em 2em;
+    padding: 1em;
     flex-grow: 99999;
     overflow-y: scroll;
 }
@@ -197,11 +272,14 @@ div.mpp-settings h2
 
 div.mpp-settings p
 {
+    color: #ccc;
+    background: #0004;
     border: 1px solid var(--color-gray);
+    border-radius: 8px;
     padding: 0.75em 1em;
     margin-top: 0.5em;
     display: block;
-    font-weight: lighter;
+    font-weight: normal;
     cursor: pointer;
     font-size: 0.9em;
     user-select: none;
@@ -239,7 +317,7 @@ div.mpp-nav-btn:hover
 .mpp-disabled,
 .mpp-disabled:hover
 {
-    color: var(--color-dark-gray);
+    color: var(--color-dark-gray) !important;
     background-color: var(--color-gray-lt) !important;
     cursor: default;
 }
@@ -305,23 +383,15 @@ div[class*="Viewer-module_slider"]
     background-color: var(--color-gray) !important;
 }
 
+
 /*
- * COMMENTS BUTTON
+ * HIDE COMMENTS
  */
-div[class*="Viewer-module_container"] img[class*="Viewer-module_commentIcon"]
+div[class*="Viewer-module_container"] a
 {
-    top: unset !important;
-    bottom: 12px !important;
-    left: 12px !important;
-    opacity: 0.4;
+    display: none !important;
 }
-div[class*="Viewer-module_container"] img[class*="Viewer-module_commentIcon"]:hover
-{
-    top: unset !important;
-    bottom: 12px !important;
-    left: 12px !important;
-    opacity: 1;
-}
+
 
 /*
  * IMAGE CONTAINER
@@ -330,6 +400,10 @@ div[class*="Viewer-module_viewerContainer"]
 {
     height: calc(var(--vh, 1vh) * 100 - 0.6em) !important;
     width: calc(100% - 18em - 8px) !important;
+}
+.mpp-menu-collapsed div[class*="Viewer-module_viewerContainer"]
+{
+    width: 100vw !important;
 }
 .mpp-no-progress-bar div[class*="Viewer-module_viewerContainer"]
 {
@@ -463,7 +537,7 @@ div[class*="Viewer-module_viewerContainer"]
             })();
 
             var self = this;
-            var onclick = function(e)
+            var onclick = function()
             {
                 if (this.canBeChanged())
                 {
@@ -555,11 +629,48 @@ div[class*="Viewer-module_viewerContainer"]
     /* Init html */
     function mppInitHtml(header)
     {
+        // Initial menu state
+        try {
+            const collapsed = window.localStorage.getItem("mpp-menu-collapsed") === "1";
+            mppSetConditionalRootClass(collapsed, "mpp-menu-collapsed");
+            if (collapsed) {                
+                window.dispatchEvent(new Event('resize'));
+            }
+        } catch { }
+
+        // Expand menu
+        const htmlExpand = document.createElement("div");
+        htmlExpand.className = "mpp-expand";
+        htmlExpand.innerHTML = "&#9776;";
+        htmlExpand.onclick = () => {
+            mppSetConditionalRootClass(false, "mpp-menu-collapsed");
+            localStorage.setItem("mpp-menu-collapsed", "0");
+            window.dispatchEvent(new Event('resize'));
+        }
+        header.parentElement.appendChild(htmlExpand);
+
+        // Collapse menu
+        const htmlCollapse = document.createElement("div");
+        htmlCollapse.className = "mpp-collapse";
+        htmlCollapse.innerHTML = "&#187;";
+        htmlCollapse.onclick = () => {
+            mppSetConditionalRootClass(true, "mpp-menu-collapsed");
+            localStorage.setItem("mpp-menu-collapsed", "1");
+            window.dispatchEvent(new Event('resize'));
+        }
+        header.firstChild.insertBefore(htmlCollapse, header.firstChild.firstChild);
+
+        // Comment link
+        const htmlComments = document.createElement("div");
+        htmlComments.className = "mpp-comments";
+        htmlComments.innerHTML = `<a href="/comments/${window.location.pathname.split('/').at(2)}">Comments</a>`;
+        header.appendChild(htmlComments);
+
         // Settings
         mppSettings.initHtml(header);
 
         // Navigation buttons
-        var htmlNav = document.createElement("div");
+        const htmlNav = document.createElement("div");
         htmlNav.className = "mpp-nav";
         htmlNav.innerHTML = `<div id="mpp-nav-left" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Next</div>
                              <div id="mpp-nav-right" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Previous</div>`;
@@ -598,7 +709,7 @@ div[class*="Viewer-module_viewerContainer"]
 
     function mppInitApp()
     {
-        if (mppLoadedUrl == window.location.href )
+        if (mppLoadedUrl === window.location.href )
         {
             return;
         }
@@ -628,8 +739,8 @@ div[class*="Viewer-module_viewerContainer"]
     /*
      * Constants
      */
-    const MPP_ALT_NAV = "Alternate Navigation";
-    const MPP_SHOW_PROG = "Show Progress Bar";
+    const MPP_ALT_NAV = "Alt Navigation";
+    const MPP_SHOW_PROG = "Progress Bar";
     const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal"); // Reading mode condition
 
 
@@ -663,7 +774,9 @@ div[class*="Viewer-module_viewerContainer"]
     window.addEventListener("popstate", mppInitApp);
 
     // Allow context menu
-    window.addEventListener("contextmenu", e => e.stopPropagation(), true);
+    window.addEventListener("contextmenu", e => {
+        e.stopPropagation();
+    }, true);
 
     // Allow middle mouse scrolling
     document.addEventListener("mousedown", function(e)
@@ -677,7 +790,7 @@ div[class*="Viewer-module_viewerContainer"]
     // Allow page refresh
     document.addEventListener("keydown", function(e)
     {
-        if (e.key == "BrowserRefresh" || e.key == "F5")
+        if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11")
         {
             e.stopPropagation();
         }
