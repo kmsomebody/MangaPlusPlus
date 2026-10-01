@@ -9,14 +9,11 @@
 // @grant        none
 // ==/UserScript==
 
-
-
 /* STYLE */
-(function (css)
-{
-    var style = document.createElement("style");
-    style.innerHTML = css;
-    document.head.appendChild(style);
+(function (css) {
+  var style = document.createElement("style");
+  style.innerHTML = css;
+  document.head.appendChild(style);
 })(`
 
 /*
@@ -49,7 +46,7 @@ div[class*="Modal-module_modal"]
 /*
  * HEADER
  */
-div[class*="Navigation-module_header"]
+div[class*="Navigation-module_header_"]
 {
     display: flex !important;
     flex-direction: column !important;
@@ -66,11 +63,11 @@ div[class*="Navigation-module_header"]
     box-shadow: unset !important;
     -webkit-box-shadow: unset !important;
 }
-.mpp-menu-collapsed div[class*="Navigation-module_header"]
+.mpp-menu-collapsed div[class*="Navigation-module_header_"]
 {
     display: none !important;
 }
-.mpp-no-progress-bar div[class*="Navigation-module_header"]
+.mpp-no-progress-bar div[class*="Navigation-module_header_"]
 {
     height: calc(var(--vh, 1vh) * 100) !important;
 }
@@ -424,405 +421,371 @@ div[class*="Viewer-module_viewerContainer"]
 }
 `);
 
-
-
-(function()
-{
-    /*
-     * Class that checks against a condition
-     */
-    class MppEnabledCondition
-    {
-        constructor(enabledCondition, expectedResult)
-        {
-            this.name = enabledCondition;
-            this.expectedResult = expectedResult;
-        }
-
-        isEnabled()
-        {
-            var result = window.localStorage[this.name];
-            return result == this.expectedResult;
-        }
+(function () {
+  /*
+   * Class that checks against a condition
+   */
+  class MppEnabledCondition {
+    constructor(enabledCondition, expectedResult) {
+      this.name = enabledCondition;
+      this.expectedResult = expectedResult;
     }
 
+    isEnabled() {
+      var result = window.localStorage[this.name];
+      return result == this.expectedResult;
+    }
+  }
 
-    /*
-     * Class that represents an option in the sidebar
-     */
-    class MppAdvancedOption
-    {
-        constructor(name, enabledCondition, options, disabledIndex, defaultIndex, delegate = () => {})
-        {
-            this.name = name;
-            this.id = "mpp-" + name.toLowerCase().replace(/ /g, '-');
-            this.valueId = this.id + "-value";
-            this.options = options;
-            this.disabledOption = disabledIndex;
-            this.defaultOption = defaultIndex;
-            this.currentOption = parseInt(window.localStorage[this.id]) || this.defaultOption;
-            this.enabledCondition = enabledCondition;
-            this.element = null;
-            this.valueElement = null;
-            this.delegate = delegate;
-        }
-
-        initHtml(parent)
-        {
-            // Create html
-            var enabled = this.canBeChanged();
-            var html = document.createElement("p");
-            html.id = this.id;
-            html.className = enabled ? "" : "mpp-disabled";
-            html.innerHTML = `${this.name}: <span id="${this.valueId}">${this.getValue()}</span>`;
-
-            // Set elements
-            this.element = parent.appendChild(html);
-            this.valueElement = document.getElementById(this.valueId);
-        }
-
-        canBeChanged()
-        {
-            return this.enabledCondition ? this.enabledCondition.isEnabled() : true;
-        }
-
-        getValue()
-        {
-            return this.options[this.canBeChanged() ? this.currentOption : this.disabledOption];
-        }
-
-        update()
-        {
-            this.element.className = this.canBeChanged() ? "" : "mpp-disabled";
-            this.valueElement.innerHTML = this.getValue();
-            this.delegate();
-        }
-
-        next()
-        {
-            this.currentOption = (this.currentOption + 1) % this.options.length;
-            window.localStorage[this.id] = this.currentOption;
-        }
+  /*
+   * Class that represents an option in the sidebar
+   */
+  class MppAdvancedOption {
+    constructor(name, enabledCondition, options, disabledIndex, defaultIndex, delegate = () => {}) {
+      this.name = name;
+      this.id = "mpp-" + name.toLowerCase().replace(/ /g, "-");
+      this.valueId = this.id + "-value";
+      this.options = options;
+      this.disabledOption = disabledIndex;
+      this.defaultOption = defaultIndex;
+      this.currentOption = parseInt(window.localStorage[this.id]) || this.defaultOption;
+      this.enabledCondition = enabledCondition;
+      this.element = null;
+      this.valueElement = null;
+      this.delegate = delegate;
     }
 
+    initHtml(parent) {
+      // Create html
+      var enabled = this.canBeChanged();
+      var html = document.createElement("p");
+      html.id = this.id;
+      html.className = enabled ? "" : "mpp-disabled";
+      html.innerHTML = `${this.name}: <span id="${this.valueId}">${this.getValue()}</span>`;
 
-    /*
-     * Class that collects and updates options
-     */
-    class MppAdvancedOptionCollection
-    {
-        constructor()
-        {
-            this.options = [];
+      // Set elements
+      this.element = parent.appendChild(html);
+      this.valueElement = document.getElementById(this.valueId);
+    }
+
+    canBeChanged() {
+      return this.enabledCondition ? this.enabledCondition.isEnabled() : true;
+    }
+
+    getValue() {
+      return this.options[this.canBeChanged() ? this.currentOption : this.disabledOption];
+    }
+
+    update() {
+      this.element.className = this.canBeChanged() ? "" : "mpp-disabled";
+      this.valueElement.innerHTML = this.getValue();
+      this.delegate();
+    }
+
+    next() {
+      this.currentOption = (this.currentOption + 1) % this.options.length;
+      window.localStorage[this.id] = this.currentOption;
+    }
+  }
+
+  /*
+   * Class that collects and updates options
+   */
+  class MppAdvancedOptionCollection {
+    constructor() {
+      this.options = [];
+    }
+
+    addOption(option) {
+      this.options.push(option);
+      this[option.name] = option;
+    }
+
+    update() {
+      for (var i = 0; i < this.options.length; ++i) {
+        this.options[i].update();
+      }
+    }
+
+    getOption(name) {
+      return this[name];
+    }
+
+    initHtml(parent) {
+      var settingsElement = (function () {
+        var html = document.createElement("div");
+        html.className = "mpp-settings";
+        html.innerHTML = "<h2>Advanced Options</h2>";
+        return parent.appendChild(html);
+      })();
+
+      var self = this;
+      var onclick = function () {
+        if (this.canBeChanged()) {
+          this.next();
+          self.update();
         }
+      };
 
-        addOption(option)
-        {
-            this.options.push(option);
-            this[option.name] = option;
-        }
+      for (var i = 0; i < this.options.length; ++i) {
+        var option = this.options[i];
+        option.initHtml(settingsElement);
+        option.element.addEventListener("click", onclick.bind(option));
+      }
 
-        update()
-        {
-            for (var i = 0; i < this.options.length; ++i)
-            {
-                this.options[i].update();
-            }
-        }
+      this.update();
+    }
+  }
 
-        getOption(name)
-        {
-            return this[name];
-        }
+  /* Key event */
+  function keyEvent(key) {
+    var e = new KeyboardEvent("keydown", {
+      code: key,
+      key: key,
+    });
+    document.dispatchEvent(e);
+  }
 
-        initHtml(parent)
-        {
-            var settingsElement = (function()
-                                   {
-                var html = document.createElement("div");
-                html.className = "mpp-settings";
-                html.innerHTML = "<h2>Advanced Options</h2>";
-                return parent.appendChild(html);
-            })();
+  /* Removes a class from an element */
+  function mppRemoveClass(element, className) {
+    if (element.className.includes(className)) {
+      element.className = element.className.replace(" " + className, "");
+      return true;
+    }
 
-            var self = this;
-            var onclick = function()
-            {
-                if (this.canBeChanged())
-                {
-                    this.next();
-                    self.update();
-                }
-            };
+    return false;
+  }
 
-            for (var i = 0; i < this.options.length; ++i)
-            {
-                var option = this.options[i];
-                option.initHtml(settingsElement);
-                option.element.addEventListener("click", onclick.bind(option));
-            }
+  /* Adds a class to an element */
+  function mppAddClass(element, className) {
+    if (!element.className.includes(className)) {
+      element.className += " " + className;
+      return true;
+    }
 
-            this.update();
-        }
+    return false;
+  }
+
+  /* Add or remove class from root, depending on condition */
+  function mppSetConditionalClass(element, condition, className) {
+    return condition ? mppAddClass(element, className) : mppRemoveClass(element, className);
+  }
+
+  /* Add or remove class from root, depending on condition */
+  function mppSetConditionalRootClass(condition, className) {
+    return mppSetConditionalClass(document.getElementById("app"), condition, className);
+  }
+
+  /* Recursively search for element with class that contains a certain string */
+  function mppGetElementByPartialClassName(element, className) {
+    if (element.className.includes(className)) {
+      return element;
+    }
+
+    for (var i = 0; i < element.children.length; ++i) {
+      var found = mppGetElementByPartialClassName(element.children[i], className);
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  /* Init html */
+  function mppInitHtml(header) {
+    // Initial menu state
+    try {
+      const collapsed = window.localStorage.getItem("mpp-menu-collapsed") === "1";
+      mppSetConditionalRootClass(collapsed, "mpp-menu-collapsed");
+      if (collapsed) {
+        window.dispatchEvent(new Event("resize"));
+      }
+    } catch {}
+
+    // Expand menu
+    const htmlExpand = document.createElement("div");
+    htmlExpand.className = "mpp-expand";
+    htmlExpand.innerHTML = "&#9776;";
+    htmlExpand.onclick = () => {
+      mppSetConditionalRootClass(false, "mpp-menu-collapsed");
+      localStorage.setItem("mpp-menu-collapsed", "0");
+      window.dispatchEvent(new Event("resize"));
     };
+    header.parentElement.appendChild(htmlExpand);
 
+    // Collapse menu
+    const htmlCollapse = document.createElement("div");
+    htmlCollapse.className = "mpp-collapse";
+    htmlCollapse.innerHTML = "&#187;";
+    htmlCollapse.onclick = () => {
+      mppSetConditionalRootClass(true, "mpp-menu-collapsed");
+      localStorage.setItem("mpp-menu-collapsed", "1");
+      window.dispatchEvent(new Event("resize"));
+    };
+    header.firstChild.insertBefore(htmlCollapse, header.firstChild.firstChild);
 
+    // Comment link
+    const htmlComments = document.createElement("div");
+    htmlComments.className = "mpp-comments";
+    htmlComments.innerHTML = `<a href="/comments/${window.location.pathname.split("/").at(2)}">Comments</a>`;
+    header.appendChild(htmlComments);
 
-    /* Key event */
-    function keyEvent(key)
-    {
-        var e = new KeyboardEvent("keydown",
-        {
-            code : key,
-            key: key
-        });
-        document.dispatchEvent(e);
-    }
+    // Settings
+    mppSettings.initHtml(header);
 
-    /* Removes a class from an element */
-    function mppRemoveClass(element, className)
-    {
-        if (element.className.includes(className))
-        {
-            element.className = element.className.replace(" " + className, "");
-            return true;
-        }
-
-        return false;
-    }
-
-    /* Adds a class to an element */
-    function mppAddClass(element, className)
-    {
-        if(!element.className.includes(className))
-        {
-            element.className += " " + className;
-            return true;
-        }
-
-        return false;
-    }
-
-    /* Add or remove class from root, depending on condition */
-    function mppSetConditionalClass(element, condition, className)
-    {
-        return condition ? mppAddClass(element, className) : mppRemoveClass(element, className);
-    }
-
-    /* Add or remove class from root, depending on condition */
-    function mppSetConditionalRootClass(condition, className)
-    {
-        return mppSetConditionalClass(document.getElementById("app"), condition, className);
-    }
-
-    /* Recursively search for element with class that contains a certain string */
-    function mppGetElementByPartialClassName(element, className)
-    {
-        if (element.className.includes(className))
-        {
-            return element;
-        }
-
-        for (var i = 0; i < element.children.length; ++i)
-        {
-            var found = mppGetElementByPartialClassName(element.children[i], className);
-            if (found)
-            {
-                return found;
-            }
-        }
-
-        return null;
-    }
-
-    /* Init html */
-    function mppInitHtml(header)
-    {
-        // Initial menu state
-        try {
-            const collapsed = window.localStorage.getItem("mpp-menu-collapsed") === "1";
-            mppSetConditionalRootClass(collapsed, "mpp-menu-collapsed");
-            if (collapsed) {                
-                window.dispatchEvent(new Event('resize'));
-            }
-        } catch { }
-
-        // Expand menu
-        const htmlExpand = document.createElement("div");
-        htmlExpand.className = "mpp-expand";
-        htmlExpand.innerHTML = "&#9776;";
-        htmlExpand.onclick = () => {
-            mppSetConditionalRootClass(false, "mpp-menu-collapsed");
-            localStorage.setItem("mpp-menu-collapsed", "0");
-            window.dispatchEvent(new Event('resize'));
-        }
-        header.parentElement.appendChild(htmlExpand);
-
-        // Collapse menu
-        const htmlCollapse = document.createElement("div");
-        htmlCollapse.className = "mpp-collapse";
-        htmlCollapse.innerHTML = "&#187;";
-        htmlCollapse.onclick = () => {
-            mppSetConditionalRootClass(true, "mpp-menu-collapsed");
-            localStorage.setItem("mpp-menu-collapsed", "1");
-            window.dispatchEvent(new Event('resize'));
-        }
-        header.firstChild.insertBefore(htmlCollapse, header.firstChild.firstChild);
-
-        // Comment link
-        const htmlComments = document.createElement("div");
-        htmlComments.className = "mpp-comments";
-        htmlComments.innerHTML = `<a href="/comments/${window.location.pathname.split('/').at(2)}">Comments</a>`;
-        header.appendChild(htmlComments);
-
-        // Settings
-        mppSettings.initHtml(header);
-
-        // Navigation buttons
-        const htmlNav = document.createElement("div");
-        htmlNav.className = "mpp-nav";
-        htmlNav.innerHTML = `<div id="mpp-nav-left" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Next</div>
+    // Navigation buttons
+    const htmlNav = document.createElement("div");
+    htmlNav.className = "mpp-nav";
+    htmlNav.innerHTML = `<div id="mpp-nav-left" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Next</div>
                              <div id="mpp-nav-right" class="mpp-btn mpp-nav-btn ${READ_HORIZONTAL.isEnabled() ? "" : "mpp-disabled"}">Previous</div>`;
-        header.appendChild(htmlNav);
+    header.appendChild(htmlNav);
 
-        document.getElementById("mpp-nav-left").addEventListener("click", function(e)
-        {
-            if(READ_HORIZONTAL.isEnabled())
-            {
-                keyEvent("ArrowLeft");
-            }
-        });
+    document.getElementById("mpp-nav-left").addEventListener("click", function (e) {
+      if (READ_HORIZONTAL.isEnabled()) {
+        keyEvent("ArrowLeft");
+      }
+    });
 
-        document.getElementById("mpp-nav-right").addEventListener("click", function(e)
-        {
-            if(READ_HORIZONTAL.isEnabled())
-            {
-                keyEvent("ArrowRight");
-            }
-        });
+    document.getElementById("mpp-nav-right").addEventListener("click", function (e) {
+      if (READ_HORIZONTAL.isEnabled()) {
+        keyEvent("ArrowRight");
+      }
+    });
 
-        // Go forward on image click
-        document.getElementsByClassName("zao")[0].addEventListener("click", function(e)
-        {
-            if (mppSettings[MPP_ALT_NAV].getValue() == "On")
-            {
-                e.stopPropagation();
+    // Go forward on image click
+    document.getElementsByClassName("zao")[0].addEventListener(
+      "click",
+      function (e) {
+        if (mppSettings[MPP_ALT_NAV].getValue() == "On") {
+          e.stopPropagation();
 
-                if (e.target.className == "zao-image")
-                {
-                    keyEvent("ArrowLeft");
-                }
-            }
-        }, true);
+          if (e.target.className == "zao-image") {
+            keyEvent("ArrowLeft");
+          }
+        }
+      },
+      true,
+    );
+  }
+
+  function mppInitApp() {
+    if (mppLoadedUrl === window.location.href) {
+      return;
     }
 
-    function mppInitApp()
-    {
-        if (mppLoadedUrl === window.location.href )
-        {
-            return;
-        }
-
-        mppLoadedUrl = window.location.href;
-        if (!window.location.href.includes("mangaplus.shueisha.co.jp/viewer/"))
-        {
-            return;
-        }
-
-        // Look for header until it's found and then initialize it
-        var interval = setInterval(function()
-        {
-            var header = mppGetElementByPartialClassName(document.getElementById("app"), "Navigation-module_header");
-            if (header)
-            {
-                clearInterval(interval);
-                mppInitHtml(header);
-            }
-        }, 50);
+    mppLoadedUrl = window.location.href;
+    if (!window.location.href.includes("mangaplus.shueisha.co.jp/viewer/")) {
+      return;
     }
 
+    // Look for header until it's found and then initialize it
+    var interval = setInterval(function () {
+      var header = mppGetElementByPartialClassName(
+        document.getElementById("app"),
+        "Navigation-module_header_",
+      );
+      if (header) {
+        clearInterval(interval);
+        mppInitHtml(header);
+      }
+    }, 50);
+  }
 
+  /*
+   * Constants
+   */
+  const MPP_ALT_NAV = "Alt Navigation";
+  const MPP_SHOW_PROG = "Progress Bar";
+  const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal"); // Reading mode condition
 
+  var mppLoadedUrl = null;
 
+  /* Settings */
+  var mppSettings = (function () {
+    var settings = new MppAdvancedOptionCollection();
+    settings.addOption(
+      new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 1, function () {
+        mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
+      }),
+    );
+    settings.addOption(
+      new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 1, function () {
+        if (
+          mppSetConditionalRootClass(
+            settings.getOption(MPP_SHOW_PROG).getValue() == "Off",
+            "mpp-no-progress-bar",
+          )
+        ) {
+          window.dispatchEvent(new Event("resize"));
+        }
+      }),
+    );
 
-    /*
-     * Constants
-     */
-    const MPP_ALT_NAV = "Alt Navigation";
-    const MPP_SHOW_PROG = "Progress Bar";
-    const READ_HORIZONTAL = new MppEnabledCondition("viewerMode", "horizontal"); // Reading mode condition
+    return settings;
+  })();
 
+  /* HTML */
+  window.addEventListener("load", mppInitApp);
 
-    var mppLoadedUrl = null;
+  window.addEventListener("popstate", mppInitApp);
 
+  // Allow context menu
+  window.addEventListener(
+    "contextmenu",
+    (e) => {
+      e.stopPropagation();
+    },
+    true,
+  );
 
-    /* Settings */
-    var mppSettings = (function()
-    {
-        var settings = new MppAdvancedOptionCollection();
-        settings.addOption(new MppAdvancedOption(MPP_ALT_NAV, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
-        {
-            mppSetConditionalRootClass(mppSettings[MPP_ALT_NAV].getValue() == "On", "mpp-alt-nav");
-        }));
-        settings.addOption(new MppAdvancedOption(MPP_SHOW_PROG, READ_HORIZONTAL, ["Off", "On"], 0, 1, function()
-        {
-            if (mppSetConditionalRootClass(settings.getOption(MPP_SHOW_PROG).getValue() == "Off", "mpp-no-progress-bar"))
-            {
-                window.dispatchEvent(new Event('resize'));
-            }
-        }));
-
-        return settings;
-    })();
-
-
-
-    /* HTML */
-    window.addEventListener("load", mppInitApp);
-
-    window.addEventListener("popstate", mppInitApp);
-
-    // Allow context menu
-    window.addEventListener("contextmenu", e => {
+  // Allow middle mouse scrolling
+  document.addEventListener(
+    "mousedown",
+    function (e) {
+      if (e && (e.which == 2 || e.button == 4)) {
         e.stopPropagation();
-    }, true);
+      }
+    },
+    true,
+  );
 
-    // Allow middle mouse scrolling
-    document.addEventListener("mousedown", function(e)
-    {
-        if (e && (e.which == 2 || e.button == 4 ))
-        {
-            e.stopPropagation();
-        }
-    }, true);
+  // Allow page refresh
+  document.addEventListener(
+    "keydown",
+    function (e) {
+      if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11") {
+        e.stopPropagation();
+      }
+    },
+    true,
+  );
 
-    // Allow page refresh
-    document.addEventListener("keydown", function(e)
-    {
-        if (e.key == "BrowserRefresh" || e.key == "F5" || e.key == "F11")
-        {
-            e.stopPropagation();
-        }
-    }, true);
+  // Refresh UI
+  document.addEventListener(
+    "click",
+    function (e) {
+      if (mppLoadedUrl) {
+        setTimeout(() => {
+          if (mppLoadedUrl != window.location.href) {
+            mppInitApp();
+            return;
+          }
 
-    // Refresh UI
-    document.addEventListener("click", function(e)
-    {
-        if (mppLoadedUrl)
-        {
-            setTimeout(() =>
-            {
-                if (mppLoadedUrl != window.location.href)
-                {
-                    mppInitApp();
-                    return;
-                }
-
-                mppSettings.update();
-                mppSetConditionalClass(document.getElementById("mpp-nav-left"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
-                mppSetConditionalClass(document.getElementById("mpp-nav-right"), !READ_HORIZONTAL.isEnabled(), "mpp-disabled");
-            }, 500);
-        }
-    }, true);
-
+          mppSettings.update();
+          mppSetConditionalClass(
+            document.getElementById("mpp-nav-left"),
+            !READ_HORIZONTAL.isEnabled(),
+            "mpp-disabled",
+          );
+          mppSetConditionalClass(
+            document.getElementById("mpp-nav-right"),
+            !READ_HORIZONTAL.isEnabled(),
+            "mpp-disabled",
+          );
+        }, 500);
+      }
+    },
+    true,
+  );
 })();
